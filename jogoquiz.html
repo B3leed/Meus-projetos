@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Quiz</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #f8fafc;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1e1b4b, #312e81, #0f172a);
+        }
+
+        .cartao {
+            width: min(100%, 650px);
+            padding: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            background: rgba(15, 23, 42, 0.92);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+        }
+
+        h1, h2, p {
+            margin-top: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #a5b4fc;
+        }
+
+        .centralizado {
+            text-align: center;
+        }
+
+        .oculto {
+            display: none;
+        }
+
+        .informacoes {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 24px;
+            color: #cbd5e1;
+            font-weight: bold;
+        }
+
+        .alternativas {
+            display: grid;
+            gap: 12px;
+            margin: 24px 0;
+        }
+
+        button {
+            border: 0;
+            border-radius: 10px;
+            padding: 14px 18px;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .botao-principal {
+            width: 100%;
+            background: #4f46e5;
+        }
+
+        .botao-principal:hover {
+            background: #6366f1;
+        }
+
+        .alternativa {
+            text-align: left;
+            background: #334155;
+        }
+
+        .alternativa:hover:not(:disabled) {
+            background: #475569;
+        }
+
+        .alternativa:disabled {
+            cursor: default;
+            opacity: 0.95;
+        }
+
+        .correta {
+            background: #15803d;
+        }
+
+        .errada {
+            background: #b91c1c;
+        }
+
+        #mensagem {
+            min-height: 24px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        @media (max-width: 480px) {
+            .cartao {
+                padding: 22px;
+            }
+
+            .informacoes {
+                flex-direction: column;
+                gap: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="cartao">
+        <section id="tela-inicial">
+            <h1>🎮 Jogo de Quiz</h1>
+            <p class="centralizado">Teste seus conhecimentos e tente acertar todas as perguntas!</p>
+            <button class="botao-principal" id="iniciar">Iniciar quiz</button>
+        </section>
+
+        <section id="tela-quiz" class="oculto">
+            <div class="informacoes">
+                <span id="progresso"></span>
+                <span id="pontuacao">Pontos: 0</span>
+            </div>
+
+            <h2 id="pergunta"></h2>
+            <div id="alternativas" class="alternativas"></div>
+            <p id="mensagem"></p>
+        </section>
+
+        <section id="tela-resultado" class="oculto centralizado">
+            <h1>🏆 Fim de jogo!</h1>
+            <p id="resultado"></p>
+            <button class="botao-principal" id="jogar-novamente">Jogar novamente</button>
+        </section>
+    </main>
+
+    <script>
+        const perguntas = [
+            {
+                texto: "Qual é a capital do Brasil?",
+                alternativas: ["São Paulo", "Brasília", "Rio de Janeiro", "Salvador"],
+                correta: 1
+            },
+            {
+                texto: "Qual é a capital da França?",
+                alternativas: ["Paris", "Londres", "Berlim", "Roma"],
+                correta: 0
+            },
+            {
+                texto: "Qual é a capital da Itália?",
+                alternativas: ["Roma", "Milão", "Veneza", "Florença"],
+                correta: 0
+            },
+            {
+                texto: "Qual linguagem é usada neste jogo?",
+                alternativas: ["Python", "HTML", "CSS", "SQL"],
+                correta: 0
+            }
+        ];
+
+        const telaInicial = document.getElementById("tela-inicial");
+        const telaQuiz = document.getElementById("tela-quiz");
+        const telaResultado = document.getElementById("tela-resultado");
+        const perguntaElement = document.getElementById("pergunta");
+        const alternativasElement = document.getElementById("alternativas");
+        const progressoElement = document.getElementById("progresso");
+        const pontuacaoElement = document.getElementById("pontuacao");
+        const mensagemElement = document.getElementById("mensagem");
+        const resultadoElement = document.getElementById("resultado");
+
+        let perguntasDoJogo = [];
+        let perguntaAtual = 0;
+        let pontos = 0;
+
+        function embaralhar(lista) {
+            return [...lista].sort(() => Math.random() - 0.5);
+        }
+
+        function iniciarQuiz() {
+            perguntasDoJogo = embaralhar(perguntas);
+            perguntaAtual = 0;
+            pontos = 0;
+            telaInicial.classList.add("oculto");
+            telaResultado.classList.add("oculto");
+            telaQuiz.classList.remove("oculto");
+            mostrarPergunta();
+        }
+
+        function mostrarPergunta() {
+            const pergunta = perguntasDoJogo[perguntaAtual];
+            progressoElement.textContent = `Pergunta ${perguntaAtual + 1} de ${perguntasDoJogo.length}`;
+            pontuacaoElement.textContent = `Pontos: ${pontos}`;
+            perguntaElement.textContent = pergunta.texto;
+            mensagemElement.textContent = "";
+            alternativasElement.innerHTML = "";
+
+            pergunta.alternativas.forEach((alternativa, indice) => {
+                const botao = document.createElement("button");
+                botao.className = "alternativa";
+                botao.textContent = `${String.fromCharCode(65 + indice)}) ${alternativa}`;
+                botao.addEventListener("click", () => verificarResposta(indice, botao));
+                alternativasElement.appendChild(botao);
+            });
+        }
+
+        function verificarResposta(indiceEscolhido, botaoEscolhido) {
+            const pergunta = perguntasDoJogo[perguntaAtual];
+            const botoes = document.querySelectorAll(".alternativa");
+            botoes.forEach((botao) => botao.disabled = true);
+
+            if (indiceEscolhido === pergunta.correta) {
+                pontos++;
+                botaoEscolhido.classList.add("correta");
+                mensagemElement.textContent = "✅ Resposta correta!";
+            } else {
+                botaoEscolhido.classList.add("errada");
+                botoes[pergunta.correta].classList.add("correta");
+                mensagemElement.textContent = "❌ Resposta errada!";
+            }
+
+            pontuacaoElement.textContent = `Pontos: ${pontos}`;
+            setTimeout(proximaPergunta, 1000);
+        }
+
+        function proximaPergunta() {
+            perguntaAtual++;
+            if (perguntaAtual < perguntasDoJogo.length) {
+                mostrarPergunta();
+            } else {
+                mostrarResultado();
+            }
+        }
+
+        function mostrarResultado() {
+            telaQuiz.classList.add("oculto");
+            telaResultado.classList.remove("oculto");
+            resultadoElement.textContent = `Você fez ${pontos} de ${perguntasDoJogo.length} pontos.`;
+        }
+
+        document.getElementById("iniciar").addEventListener("click", iniciarQuiz);
+        document.getElementById("jogar-novamente").addEventListener("click", iniciarQuiz);
+    </script>
+</body>
+</html>

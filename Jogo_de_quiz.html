@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Quiz</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            color: #f8fafc;
+            background: linear-gradient(135deg, #1e1b4b, #312e81, #0f172a);
+        }
+        .cartao {
+            width: min(100%, 650px);
+            padding: 32px;
+            border-radius: 20px;
+            background: rgba(15, 23, 42, .95);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .4);
+        }
+        h1, h2 { color: #a5b4fc; }
+        .centralizado { text-align: center; }
+        .oculto { display: none; }
+        .informacoes {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            color: #cbd5e1;
+            font-weight: bold;
+        }
+        .alternativas { display: grid; gap: 12px; margin: 24px 0; }
+        button {
+            width: 100%;
+            padding: 14px 18px;
+            border: 0;
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover:not(:disabled) { filter: brightness(1.15); }
+        .principal { background: #4f46e5; }
+        .alternativa { text-align: left; background: #334155; }
+        .correta { background: #15803d; }
+        .errada { background: #b91c1c; }
+        .mensagem { min-height: 24px; text-align: center; font-weight: bold; }
+        @media (max-width: 480px) {
+            .cartao { padding: 22px; }
+            .informacoes { flex-direction: column; gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="cartao">
+        <section id="inicio" class="centralizado">
+            <h1>🎮 Jogo de Quiz</h1>
+            <p>Bem-vindo ao quiz alfa! Responda às 4 perguntas.</p>
+            <button class="principal" id="iniciar">Iniciar quiz</button>
+        </section>
+
+        <section id="quiz" class="oculto">
+            <div class="informacoes">
+                <span id="progresso"></span>
+                <span id="pontos">Pontos: 0</span>
+            </div>
+            <h2 id="texto-pergunta"></h2>
+            <div id="alternativas" class="alternativas"></div>
+            <p id="mensagem" class="mensagem"></p>
+        </section>
+
+        <section id="resultado" class="oculto centralizado">
+            <h1>🏆 Quiz finalizado!</h1>
+            <p id="texto-resultado"></p>
+            <button class="principal" id="reiniciar">Jogar novamente</button>
+        </section>
+    </main>
+
+    <script>
+        const perguntas = [
+            {
+                texto: "Qual é a capital do Brasil?",
+                alternativas: ["São Paulo", "Brasília", "Rio de Janeiro", "Salvador"],
+                correta: 1
+            },
+            {
+                texto: "Qual é a capital da França?",
+                alternativas: ["Paris", "Londres", "Berlim", "Roma"],
+                correta: 0
+            },
+            {
+                texto: "Qual é a capital da Itália?",
+                alternativas: ["Roma", "Milão", "Veneza", "Florença"],
+                correta: 0
+            },
+            {
+                texto: "Pergunta secreta: quando você pretende conseguir um emprego?",
+                alternativas: ["Em breve", "Ainda não sei", "Quando tiver experiência", "Prefiro não responder"],
+                correta: null
+            }
+        ];
+
+        const inicio = document.getElementById("inicio");
+        const quiz = document.getElementById("quiz");
+        const resultado = document.getElementById("resultado");
+        const textoPergunta = document.getElementById("texto-pergunta");
+        const alternativas = document.getElementById("alternativas");
+        const progresso = document.getElementById("progresso");
+        const pontosElemento = document.getElementById("pontos");
+        const mensagem = document.getElementById("mensagem");
+        const textoResultado = document.getElementById("texto-resultado");
+
+        let perguntasDoJogo;
+        let indiceAtual;
+        let pontos;
+
+        function iniciarQuiz() {
+            perguntasDoJogo = [...perguntas].sort(() => Math.random() - 0.5);
+            indiceAtual = 0;
+            pontos = 0;
+            inicio.classList.add("oculto");
+            resultado.classList.add("oculto");
+            quiz.classList.remove("oculto");
+            mostrarPergunta();
+        }
+
+        function mostrarPergunta() {
+            const pergunta = perguntasDoJogo[indiceAtual];
+            progresso.textContent = `Pergunta ${indiceAtual + 1} de ${perguntasDoJogo.length}`;
+            pontosElemento.textContent = `Pontos: ${pontos}`;
+            textoPergunta.textContent = pergunta.texto;
+            mensagem.textContent = "";
+            alternativas.innerHTML = "";
+
+            pergunta.alternativas.forEach((texto, indice) => {
+                const botao = document.createElement("button");
+                botao.className = "alternativa";
+                botao.textContent = `${String.fromCharCode(65 + indice)}) ${texto}`;
+                botao.addEventListener("click", () => responder(indice, botao));
+                alternativas.appendChild(botao);
+            });
+        }
+
+        function responder(indiceEscolhido, botaoEscolhido) {
+            const pergunta = perguntasDoJogo[indiceAtual];
+            const botoes = document.querySelectorAll(".alternativa");
+            botoes.forEach(botao => botao.disabled = true);
+
+            if (pergunta.correta === null) {
+                mensagem.textContent = "🤔 Resposta registrada!";
+                botaoEscolhido.classList.add("correta");
+            } else if (indiceEscolhido === pergunta.correta) {
+                pontos++;
+                mensagem.textContent = "✅ Resposta correta!";
+                botaoEscolhido.classList.add("correta");
+            } else {
+                mensagem.textContent = "❌ Resposta errada!";
+                botaoEscolhido.classList.add("errada");
+                botoes[pergunta.correta].classList.add("correta");
+            }
+
+            pontosElemento.textContent = `Pontos: ${pontos}`;
+            setTimeout(proximaPergunta, 1000);
+        }
+
+        function proximaPergunta() {
+            indiceAtual++;
+            if (indiceAtual < perguntasDoJogo.length) {
+                mostrarPergunta();
+            } else {
+                quiz.classList.add("oculto");
+                resultado.classList.remove("oculto");
+                textoResultado.textContent = `Você fez ${pontos} de 3 pontos nas perguntas com resposta correta.`;
+            }
+        }
+
+        document.getElementById("iniciar").addEventListener("click", iniciarQuiz);
+        document.getElementById("reiniciar").addEventListener("click", iniciarQuiz);
+    </script>
+</body>
+</html>

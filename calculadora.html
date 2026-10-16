@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: grid;
+            place-items: center;
+            background: #e8eef5;
+            font-family: Arial, sans-serif;
+        }
+
+        .calculadora {
+            width: min(92vw, 340px);
+            padding: 24px;
+            border-radius: 16px;
+            background: #17212b;
+            box-shadow: 0 14px 30px #17212b44;
+        }
+
+        h1 {
+            margin: 0 0 16px;
+            color: #ffffff;
+            font-size: 1.4rem;
+            text-align: center;
+        }
+
+        #visor {
+            width: 100%;
+            margin-bottom: 16px;
+            padding: 14px;
+            border: 0;
+            border-radius: 8px;
+            background: #f5f7fa;
+            color: #17212b;
+            font-size: 1.6rem;
+            text-align: right;
+        }
+
+        .botoes {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        button {
+            min-height: 52px;
+            border: 0;
+            border-radius: 8px;
+            background: #344454;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        button:hover {
+            background: #4b6074;
+        }
+
+        .operador {
+            background: #dc7b32;
+        }
+
+        .operador:hover {
+            background: #f0954b;
+        }
+
+        .limpar {
+            grid-column: span 2;
+            background: #a94747;
+        }
+
+        .igual {
+            background: #278568;
+        }
+
+        .igual:hover {
+            background: #35a37f;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="calculadora">
+        <h1>Calculadora</h1>
+        <input id="visor" type="text" value="0" readonly aria-label="Resultado">
+
+        <div class="botoes">
+            <button class="limpar" type="button" onclick="limpar()">Limpar</button>
+            <button class="operador" type="button" onclick="escolherOperacao('÷')">÷</button>
+            <button class="operador" type="button" onclick="escolherOperacao('^')">^</button>
+
+            <button type="button" onclick="adicionarNumero('7')">7</button>
+            <button type="button" onclick="adicionarNumero('8')">8</button>
+            <button type="button" onclick="adicionarNumero('9')">9</button>
+            <button class="operador" type="button" onclick="escolherOperacao('×')">×</button>
+
+            <button type="button" onclick="adicionarNumero('4')">4</button>
+            <button type="button" onclick="adicionarNumero('5')">5</button>
+            <button type="button" onclick="adicionarNumero('6')">6</button>
+            <button class="operador" type="button" onclick="escolherOperacao('-')">−</button>
+
+            <button type="button" onclick="adicionarNumero('1')">1</button>
+            <button type="button" onclick="adicionarNumero('2')">2</button>
+            <button type="button" onclick="adicionarNumero('3')">3</button>
+            <button class="operador" type="button" onclick="escolherOperacao('+')">+</button>
+
+            <button type="button" onclick="adicionarNumero('0')">0</button>
+            <button type="button" onclick="adicionarNumero('.')">.</button>
+            <button class="igual" type="button" onclick="calcular()">=</button>
+        </div>
+    </main>
+
+    <script>
+        const visor = document.getElementById('visor');
+        let primeiroNumero = null;
+        let operacao = null;
+        let limparProximo = false;
+
+        function adicionarNumero(numero) {
+            if (limparProximo || visor.value === '0') {
+                visor.value = numero === '.' ? '0.' : numero;
+                limparProximo = false;
+                return;
+            }
+
+            if (numero === '.' && visor.value.includes('.')) {
+                return;
+            }
+
+            visor.value += numero;
+        }
+
+        function escolherOperacao(novaOperacao) {
+            primeiroNumero = Number(visor.value);
+            operacao = novaOperacao;
+            limparProximo = true;
+        }
+
+        function calcular() {
+            if (primeiroNumero === null || operacao === null) {
+                return;
+            }
+
+            const segundoNumero = Number(visor.value);
+            let resultado;
+
+            if (operacao === '+') resultado = primeiroNumero + segundoNumero;
+            if (operacao === '-') resultado = primeiroNumero - segundoNumero;
+            if (operacao === '×') resultado = primeiroNumero * segundoNumero;
+            if (operacao === '÷') {
+                if (segundoNumero === 0) {
+                    visor.value = 'Erro: divisão por zero';
+                    primeiroNumero = null;
+                    operacao = null;
+                    return;
+                }
+                resultado = primeiroNumero / segundoNumero;
+            }
+            if (operacao === '^') resultado = primeiroNumero ** segundoNumero;
+
+            visor.value = resultado;
+            primeiroNumero = null;
+            operacao = null;
+            limparProximo = true;
+        }
+
+        function limpar() {
+            visor.value = '0';
+            primeiroNumero = null;
+            operacao = null;
+            limparProximo = false;
+        }
+    </script>
+</body>
+
+</html>
